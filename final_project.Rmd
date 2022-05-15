@@ -1,0 +1,85 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r,warning=FALSE,message=FALSE}
+library(dplyr)
+library(lubridate)
+library(rstan)
+
+```
+
+```{r}
+df <- 
+  read.csv("NY_cases.csv") 
+df<-df%>%select(state,submission_date,new_case, tot_cases)
+```
+
+```{r}
+lastday <- df %>% 
+  mutate(days_away=rev(row_number())-1,
+         weight=dgamma(days_away,shape=5.9^2/3.9,rate=5.9/3.9))
+  
+```
+
+```{r, comment="", echo = FALSE}
+writeLines(readLines("reproduction_num.stan"))
+```
+
+
+```{r}
+overallinfectivity=sum(lastday$new_case*lastday$weight)
+It=lastday$new_case[nrow(lastday)]
+a=9/8
+b=3/4
+```
+
+
+Approach:
+
+step1: Calculate daily R_t (the estimated mean of floating weekly transimission rate) in New York State with function estimate_R from package EpiEstim. We choose to specify the distribution of the serial period and assumes it follows a gamma distribution with mean of 5.9 and standard deviation of 3.9, according to the paper of Liu et al.. 
+
+
+```{r, Stan, results = "hide", message = FALSE, warning = FALSE}
+post <- stan("reproduction_num.stan",   
+             data = list(infect=overallinfectivity,I=It, prior_only = 0, alpha = a, beta=b))
+```
+
+```{r}
+post
+```
+
+
+
+## Posterior Planes
+
+```{r, fig.width=10, fig.height=5, small.mar = TRUE}
+pairs(post, pars = "p", include = FALSE) 
+```
+```{r, fig.width=10, fig.height=5, small.mar = TRUE}
+draws <- as.data.frame(post) %>% select(-starts_with("p"))
+mean(draws$Rt)
+```
+Essentially we can compute the Rt for all time points in the dataset,assuming the same serial interval distribution. 
+
+```{r, loop, results = "hide", message = FALSE, warning = FALSE}
+for (i in 2:nrow(df)){
+  dt<-df[1:i,] %>% 
+  mutate(days_away=rev(row_number())-1,
+         weight=dgamma(days_away,shape=5.9^2/3.9,rate=5.9/3.9))
+  overall=sum(dt$new_case*dt$weight)
+  I_t=dt$new_case[nrow(dt)]
+  a=9/8
+  b=3/4
+  posterior <- stan("reproduction_num.stan",   
+             data = list(infect=overall,I=I_t, prior_only = 0, alpha = a, beta=b))
+post.df <- as.data.frame(posterior) %>% select(-starts_with("p"))
+df$Rt[i]<-mean(post.df$Rt)
+}
+
+
+```
+
+
+
