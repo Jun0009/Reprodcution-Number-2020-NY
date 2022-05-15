@@ -1,7 +1,17 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "final project"
+output: pdf_document
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Bayesian Inference Final Project
+
+### Introduction
+
+
 
 ```{r,warning=FALSE,message=FALSE}
 library(dplyr)
@@ -52,7 +62,7 @@ post
 
 
 
-## Posterior Planes
+### Posterior Planes
 
 ```{r, fig.width=10, fig.height=5, small.mar = TRUE}
 pairs(post, pars = "p", include = FALSE) 
@@ -82,4 +92,7 @@ df$Rt[i]<-mean(post.df$Rt)
 ```
 
 
+### Reference
+
+Anne Cori, Neil M. Ferguson, Christophe Fraser, Simon Cauchemez, A New Framework and Software to Estimate Time-Varying Reproduction Numbers During Epidemics, American Journal of Epidemiology, Volume 178, Issue 9, 1 November 2013, Pages 1505–1512, https://doi.org/10.1093/aje/kwt133
 
