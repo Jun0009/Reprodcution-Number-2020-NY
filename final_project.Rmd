@@ -102,13 +102,14 @@ writeLines(readLines("reproduction_num2.stan"))
 
 ```{r, results = "hide", message = FALSE, warning = FALSE}
 post_neg <- stan("reproduction_num2.stan",   
-             data = list(infect=overallinfectivity,I=It, prior_only = 0, alpha = a, beta=b, mu=5,sigma=5))
+             data = list(infect=overallinfectivity,I=It, prior_only = 0,
+                         alpha = a, beta=b, mu=5,sigma=5))
 ```
 ```{r}
 post_neg
 ```
 
-After modification, the mean of the posterior distribution of $R_t$ on Dec.31st, 2020 in New York is 1.70 with a 0.95 credible interval of (0.77,3.41). The negative binomial likelihood gives a wider credible interval which implies higher uncertainty in estimation. 
+After modification, the negative binomial likelihood gives a wider credible interval which implies higher uncertainty in estimation. 
 
 ```{r, fig.width=10, fig.height=5, small.mar = TRUE}
 pairs(post_neg, pars = "p", include = FALSE) 
